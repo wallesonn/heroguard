@@ -503,6 +503,26 @@ passou a interromper com aviso de segurança. Depois da atualização:
 `npm audit` = 0 vulnerabilidades, `tsc --noEmit` e `npm run build` limpos, e
 o build não emite mais o aviso.
 
+## Carrossel interativo das telas do beta — 2026-10-23
+
+Na seção “Como funciona”, as cinco telas `public/HeroGuard_tela01.png` a
+`public/HeroGuard_tela05.png` são apresentadas em carrossel, substituindo o
+mock de painel em HTML. A tela ativa fica centralizada; as telas anterior e
+próxima aparecem menores, translúcidas e em segundo plano, com transições
+suaves e zoom.
+
+- Avanço automático em loop enquanto o carrossel está visível; pausa quando
+  sai da viewport.
+- Navegação por swipe/arraste horizontal, setas na tela, indicadores e teclas
+  de seta; controles para pausar e retomar.
+- `prefers-reduced-motion` desativa a reprodução automática e as transições,
+  mantendo a navegação manual.
+- Sem fundo ou cenário decorativo atrás das imagens; mantém as bordas mais
+  arredondadas nas telas 3 e 4.
+
+Verificação: `tsc --noEmit` e `npm run build` passaram; a rota e as cinco
+imagens respondem HTTP 200. Nenhum commit feito.
+
 ## Pendências
 
 - Ajustes finos de ritmo ou legibilidade somente se forem solicitados pelo usuário.

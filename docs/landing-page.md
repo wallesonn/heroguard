@@ -331,7 +331,17 @@ Mensagem sugerida:
 
 Introduzir o produto como uma nova forma de acompanhar a vida digital dos filhos.
 
-A seção pode utilizar um dashboard animado ou uma representação visual do produto. Essa representação deverá ser explicitamente conceitual nesta fase.
+**Motion das telas do beta:** a seção “Como funciona” usa as cinco telas em
+`public/HeroGuard_tela01.png` a `public/HeroGuard_tela05.png` em um carrossel
+contínuo, sem cenário ou fundo decorativo adicional. A tela ativa aparece em
+primeiro plano; a anterior e a próxima ficam menores e translúcidas atrás
+dela. Zoom e transições suaves acompanham a troca.
+
+O visitante pode deslizar horizontalmente, usar as setas, os indicadores ou as
+teclas ←/→. O carrossel pausa quando sai da viewport, pode ser
+pausado/retomado manualmente e respeita `prefers-reduced-motion` (sem
+reprodução automática nesse modo). As telas são responsivas e a sequência
+informa abertura, conexão de contas, conversas, alerta contextual e resumo.
 
 #### Privacidade e proteção de dados (proposta)
 

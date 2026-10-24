@@ -1,6 +1,7 @@
 import OpeningVideo from "@/components/OpeningVideo";
 import SiteNav from "@/components/SiteNav";
 import MundoEmMovimento from "@/components/MundoEmMovimento";
+import ComoFuncionaMotion from "@/components/ComoFuncionaMotion";
 import PageEffects from "@/components/PageEffects";
 import NotaPrivacidade from "@/components/NotaPrivacidade";
 import { WaitlistButton, WaitlistProvider } from "@/components/Waitlist";
@@ -110,7 +111,7 @@ export default function Home() {
               </article>
               <article className="how-step" role="listitem">
                 <span className="how-step-num">PASSO 02</span>
-                <h3>Receba sinais</h3>
+                <h3>Acompanhe</h3>
                 <p>O HeroGuard organiza o contexto das interações em níveis claros de atenção, sem expor você a um mar de notificações.</p>
               </article>
               <article className="how-step" role="listitem">
@@ -119,19 +120,7 @@ export default function Home() {
                 <p>Use o contexto para abrir o diálogo certo na hora certa — com escuta, acolhimento e presença real.</p>
               </article>
             </div>
-            <div className="concept-art" data-reveal>
-              <div className="concept-halo" aria-hidden="true"></div>
-              <div className="concept-card">
-                <div className="mock-top"><div className="mock-brand"><span className="mock-shield">H</span> <span className="brand-wordmark"><span className="brand-hero">Hero</span><span className="brand-guard">Guard</span></span></div><span className="mock-status"><i></i> PAINEL DOS PAIS</span></div>
-                <div className="mock-welcome"><div><span className="mock-kicker">UM OLHAR MAIS CLARO</span><h3>O que merece<br/>sua atenção hoje?</h3></div><span className="mock-date">RESUMO DIÁRIO</span></div>
-                <div className="mock-summary"><div className="summary-block"><span>CONVERSAS</span><strong>12</strong></div><div className="summary-block"><span>CONTATOS</span><strong>08</strong></div><div className="summary-block summary-focus"><span>PARA CONVERSAR</span><strong>02</strong><small>Não é uma conclusão</small></div></div>
-                <div className="mock-message"><div className="mock-avatar">L</div><div className="mock-message-copy"><strong>Lucas M.</strong><p>“A gente conversa amanhã na escola?”</p></div></div>
-                <div className="mock-message"><div className="mock-avatar avatar-alt">M</div><div className="mock-message-copy"><strong>Marina R.</strong><p>“Obrigada por me ajudar com o trabalho!”</p></div></div>
-                <div className="mock-disclaimer">Exemplo ilustrativo do painel com dados fictícios para preservar a privacidade.</div>
-              </div>
-              <div className="floating-note note-context"><span className="note-icon">✳</span><span><b>Contexto antes</b><small>de qualquer conclusão</small></span></div>
-              <div className="floating-note note-quiet"><span className="quiet-wave" aria-hidden="true">≈</span><span><b>Menos ruído</b><small>mais clareza</small></span></div>
-            </div>
+            <ComoFuncionaMotion />
           </div>
         </section>
 
