@@ -147,3 +147,178 @@
     transition: none !important;
   }
 }
+
+/* ============================================================
+/* ============================================================
+/* ============================================================
+ * Motion Graphics Infográfico: Privacidade e Segurança
+ * Geometria perfeitamente centralizada e fundo 100% transparente.
+ * ============================================================ */
+
+.privacy-infographic-motion {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 20px auto 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.privacy-infographic-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Rotação perfeitamente alinhada no centro (0, 0) das órbitas */
+.infographic-orbit--outer {
+  transform-origin: 0 0;
+  animation: infographic-spin 38s linear infinite;
+}
+
+.infographic-orbit--mid {
+  transform-origin: 0 0;
+  animation: infographic-spin-reverse 26s linear infinite;
+}
+
+.infographic-orbit--inner {
+  transform-origin: 0 0;
+  animation: infographic-spin 18s linear infinite;
+}
+
+/* Pulso de radar expandindo a partir do centro (0, 0) */
+.infographic-radar {
+  fill: none;
+  stroke: rgba(45, 212, 191, 0.45);
+  stroke-width: 1.5;
+  animation: infographic-radar-pulse 3.6s cubic-bezier(0.16, 0.65, 0.35, 1) infinite;
+}
+
+.infographic-radar--2 {
+  animation-delay: 1.2s;
+  stroke: rgba(240, 201, 92, 0.38);
+}
+
+.infographic-radar--3 {
+  animation-delay: 2.4s;
+  stroke: rgba(45, 212, 191, 0.45);
+}
+
+/* Fluxo luminoso contínuo nos feixes de conexão */
+.infographic-beam {
+  animation: infographic-beam-flow 1.5s linear infinite;
+}
+
+.infographic-beam--left {
+  filter: drop-shadow(0 0 5px rgba(45, 212, 191, 0.5));
+}
+
+.infographic-beam--top {
+  filter: drop-shadow(0 0 5px rgba(240, 201, 92, 0.55));
+  animation-duration: 1.2s;
+}
+
+.infographic-beam--right {
+  filter: drop-shadow(0 0 5px rgba(45, 212, 191, 0.5));
+  animation-duration: 1.5s;
+}
+
+/* Flutuação suave do Escudo Central em (0, 0) */
+.infographic-shield-core {
+  transform-origin: 0 0;
+  animation: infographic-shield-float 3.6s ease-in-out infinite alternate;
+}
+
+/* Pulsação harmônica dos 3 nós em torno dos seus próprios centros */
+.infographic-node-content {
+  transform-origin: 0 0;
+  animation: infographic-node-pulse 3.2s ease-in-out infinite alternate;
+}
+
+.infographic-node--left {
+  animation-delay: 0s;
+}
+
+.infographic-node--top {
+  animation-delay: 0.8s;
+}
+
+.infographic-node--right {
+  animation-delay: 1.6s;
+}
+
+/* Keyframes */
+@keyframes infographic-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes infographic-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes infographic-radar-pulse {
+  0% {
+    r: 40px;
+    opacity: 0.85;
+  }
+  100% {
+    r: 155px;
+    opacity: 0;
+  }
+}
+
+@keyframes infographic-beam-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+
+@keyframes infographic-shield-float {
+  0% {
+    transform: translateY(0) scale(0.98);
+  }
+  100% {
+    transform: translateY(-5px) scale(1.02);
+  }
+}
+
+@keyframes infographic-node-pulse {
+  0% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1.06);
+  }
+}
+
+/* Modo movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  .infographic-orbit--outer,
+  .infographic-orbit--mid,
+  .infographic-orbit--inner,
+  .infographic-radar,
+  .infographic-beam,
+  .infographic-shield-core,
+  .infographic-node-content {
+    animation: none !important;
+  }
+}

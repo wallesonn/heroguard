@@ -6,27 +6,32 @@ const screens = [
   {
     src: "/HeroGuard_tela01.png",
     alt: "Tela inicial do aplicativo HeroGuard, com o botão Começar.",
-    caption: "Comece com o HeroGuard",
+    label: "Comece com o HeroGuard",
+    caption: "Proteção digital com presença e diálogo.",
   },
   {
     src: "/HeroGuard_tela02.png",
     alt: "Tela para conectar as contas de WhatsApp e Instagram.",
-    caption: "Conecte as contas",
+    label: "Contatos",
+    caption: "Compreensão das relações digitais com cuidado.",
   },
   {
     src: "/HeroGuard_tela03.png",
     alt: "Lista de conversas organizadas por níveis de atenção.",
-    caption: "Acompanhe as conversas",
+    label: "Conversas",
+    caption: "Visão organizada das interações que importam.",
   },
   {
     src: "/HeroGuard_tela04.png",
     alt: "Conversa com um alerta contextual destacado.",
-    caption: "Entenda o contexto do sinal",
+    label: "Alertas",
+    caption: "Sinais claros para apoiar a atenção consciente dos pais.",
   },
   {
     src: "/HeroGuard_tela05.png",
     alt: "Resumo de segurança com visão geral das conversas do período.",
-    caption: "Veja o resumo do período",
+    label: "Inteligência e contexto",
+    caption: "Análise contextual sempre apoiada pela avaliação humana.",
   },
 ];
 
@@ -47,7 +52,6 @@ function screenPosition(index: number, active: number): string {
 
 export default function ComoFuncionaMotion() {
   const [activeScreen, setActiveScreen] = useState(0);
-  const [playing, setPlaying] = useState(true);
   const [inView, setInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -55,10 +59,7 @@ export default function ComoFuncionaMotion() {
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const updatePreference = () => {
-      setReducedMotion(preference.matches);
-      if (preference.matches) setPlaying(false);
-    };
+    const updatePreference = () => setReducedMotion(preference.matches);
 
     updatePreference();
     preference.addEventListener("change", updatePreference);
@@ -83,23 +84,21 @@ export default function ComoFuncionaMotion() {
   }, []);
 
   useEffect(() => {
-    if (!playing || !inView || reducedMotion) return;
+    if (!inView || reducedMotion) return;
 
     const timer = window.setTimeout(
       () => setActiveScreen((screen) => (screen + 1) % screens.length),
       SCREEN_DURATION_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [activeScreen, inView, playing, reducedMotion]);
+  }, [activeScreen, inView, reducedMotion]);
 
   const selectScreen = (index: number) => {
     setActiveScreen((index + screens.length) % screens.length);
-    setPlaying(false);
   };
 
   const move = (direction: -1 | 1) => {
     setActiveScreen((screen) => (screen + direction + screens.length) % screens.length);
-    setPlaying(false);
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -183,35 +182,26 @@ export default function ComoFuncionaMotion() {
         </button>
       </div>
 
-      <div className="product-motion-caption" aria-live={playing ? "off" : "polite"}>
-        <span className="product-motion-counter">
-          {String(activeScreen + 1).padStart(2, "0")} / {String(screens.length).padStart(2, "0")}
-        </span>
-        <p>{screens[activeScreen].caption}</p>
+      <div className="product-motion-caption" aria-live={reducedMotion ? "polite" : "off"}>
+        <div className="product-motion-caption-copy">
+          <strong>{screens[activeScreen].label}</strong>
+          <p>{screens[activeScreen].caption}</p>
+        </div>
       </div>
 
-      <div className="product-motion-controls" role="group" aria-label="Controles da demonstração">
+      <div className="product-motion-controls" role="group" aria-label="Navegação das telas">
         <div className="product-motion-dots">
           {screens.map((screen, index) => (
             <button
               key={screen.src}
               type="button"
               className={`product-motion-dot${activeScreen === index ? " is-active" : ""}`}
-              aria-label={`Mostrar tela ${index + 1}: ${screen.caption}`}
+              aria-label={`Mostrar tela ${index + 1}: ${screen.label}`}
               aria-current={activeScreen === index ? "step" : undefined}
               onClick={() => selectScreen(index)}
             />
           ))}
         </div>
-        <button
-          className="product-motion-replay"
-          type="button"
-          aria-pressed={playing}
-          disabled={reducedMotion}
-          onClick={() => setPlaying((value) => !value)}
-        >
-          {reducedMotion ? "Movimento reduzido" : playing ? "Pausar" : "Reproduzir"}
-        </button>
       </div>
       <p className="product-motion-hint">Deslize para explorar as telas</p>
     </div>

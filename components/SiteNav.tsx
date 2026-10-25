@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const links = [
-  { href: "#visao", label: "O problema" },
+  { href: "#vida-digital", label: "Vida digital" },
   { href: "#conceito", label: "Como funciona" },
   { href: "#sinais", label: "Sinais" },
   { href: "#demonstracao", label: "Na prática" },
