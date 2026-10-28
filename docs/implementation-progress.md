@@ -514,7 +514,9 @@ suaves e zoom.
 - Avanço automático em loop enquanto o carrossel está visível; pausa quando
   sai da viewport.
 - Navegação por swipe/arraste horizontal, setas na tela, indicadores e teclas
-  de seta; controles para pausar e retomar.
+  de seta; ~~controles para pausar e retomar~~ (controle de play/pausa
+  removido em 2026-10-23 a pedido do usuário; o loop automático e a navegação
+  manual seguem sem interromper um ao outro).
 - `prefers-reduced-motion` desativa a reprodução automática e as transições,
   mantendo a navegação manual.
 - Sem fundo ou cenário decorativo atrás das imagens; mantém as bordas mais
@@ -523,16 +525,119 @@ suaves e zoom.
 Verificação: `tsc --noEmit` e `npm run build` passaram; a rota e as cinco
 imagens respondem HTTP 200. Nenhum commit feito.
 
+## Motions aprovados: chat “Veja na prática” e infográfico de privacidade — 2026-10-26
+
+Dois motion graphics aprovados pelo usuário nesta data:
+
+- **“Veja na prática” (`components/VejaNaPraticaMotion.tsx`):** conversa
+  animada em janela escura, controlada por estado React (fases 0–9) em vez de
+  keyframes sincronizados — a primeira versão em CSS puro desalinhava na
+  segunda repetição do loop. Sequência: indicadores de digitação com três
+  pontos pulsando antes de cada balão; mensagens curtas em ordem; banner
+  AMARELO entrando **apenas no final** com glow pulsante; nota de contexto;
+  pausa de leitura e fade para reiniciar. Roda em loop só com a seção na
+  viewport e, com `prefers-reduced-motion`, exibe a conversa completa
+  estática.
+- **“Privacidade e segurança” (`components/PrivacidadeMotion.tsx`):**
+  infográfico animado em fundo 100% transparente, sem textos — escudo com
+  cadeado no centro, três órbitas girando em direções alternadas, pulsos de
+  radar e três nós (chave, radar, cofre) ligados por feixes. Substituiu o
+  `NotaPrivacidade` (cartões tracejados one-shot), que deixou de ser usado.
+  Todas as transformações usam `transform-origin` centralizado no grupo
+  `translate(340, 170)` — a primeira versão posicionava os nós “fora do
+  lugar” por misturar coordenadas absolutas com origens de animação em CSS.
+
+Verificação: `tsc --noEmit` e `npm run build` passaram; ambos validados
+visualmente pelo usuário no preview local.
+
+## Cadastro real da lista de espera — API + Postgres — 2026-10-28
+
+O formulário da lista de espera passou a persistir de verdade. Fluxo:
+`navegador → Traefik → nginx (/api/) → api → Postgres (tabela waitlist)`.
+
+**Novo serviço `api/` no repo do app** (versionado junto com o código):
+
+- `api/server.js` — `node:http` + `pg` (8.23.1, sem framework). Rotas:
+  `POST /api/waitlist` e `GET /api/health`.
+- Validação server-side (nome ≥ 2, e-mail, telefone 10–11 dígitos,
+  consentimento obrigatório) espelhando a validação do modal.
+- Upsert por e-mail (`ON CONFLICT (email) DO UPDATE`): reenvio atualiza
+  nome/telefone/`updated_at` e **preserva o `status`** — o fluxo de contato
+  não repete o mesmo lead.
+- Rate limit em memória: 5 envios válidos por IP a cada 10 min; erros de
+  validação não contam. O IP é lido da **última** entrada do
+  `X-Forwarded-For` (a primeira entrada é controlável pelo cliente — a
+  versão inicial lia a primeira e permitia burlar o limite; o nginx passou a
+  repassar o cabeçalho do Traefik sem anexar).
+- Schema criado pela própria API na inicialização (idempotente, com retry
+  de 30 tentativas): tabela `waitlist` (id, name, email único, phone, status
+  default `novo`, source, consent_at, consent_version, ip, user_agent,
+  created_at, updated_at) + índice `(status, created_at DESC)`.
+- `api/Dockerfile` — node:22-alpine, sem root, healthcheck em `/api/health`.
+  Imagem: `wallesonnn/heroguard-api`.
+
+**Frontend:** `components/Waitlist.tsx` faz `fetch` real para
+`/api/waitlist` (ou `NEXT_PUBLIC_WAITLIST_ENDPOINT` em dev, onde não existe
+o proxy do nginx), com estado “Enviando...”, timeout de 15 s e mensagens de
+erro vindas da API. A confirmação só aparece após 201.
+
+**Stack (`heroguard-docker/docker-compose.yml`):**
+
+- Novo serviço `api` (container `heroguard-api`), só na rede `default`,
+  `traefik.enable=false`, `depends_on: db healthy`. A `DATABASE_URL`
+  inútil do serviço `app` foi removida.
+- `nginx.conf`: proxy de `/api/` para `api:3000` com `resolver 127.0.0.11`
+  + variável no `proxy_pass` — sem isso o nginx morre no startup
+  (“host not found in upstream”) se o container da API ainda não existir.
+  `client_max_body_size 16k`.
+- `db` também na rede `web` com alias `heroguard-db`: permite que o n8n
+  (mesma VPS, mesma rede) consulte a tabela sem expor porta.
+- `.env.example`: nova variável `API_IMAGE`.
+
+**Correções de build/deploy nesta mesma entrega:**
+
+- `heroguard-docker/.dockerignore` renomeado para
+  `Dockerfile.dockerignore` — com o build `-f heroguard-docker/Dockerfile .`,
+  só esse nome (ou `.dockerignore` na raiz do contexto) é aplicado; antes,
+  `node_modules`, `.next` e `out` entravam no contexto da imagem do site.
+  Agora também exclui `api/`.
+- `build.sh` publica as duas imagens (`heroguard-app` e `heroguard-api`).
+
+**Deploy v0.1.6 (2026-10-28):** produção (`heroguard.my`) e stack de teste
+(`teste.heroguard.my`) reimplantadas com os três serviços. Validado:
+`/api/health` 200 nos dois ambientes; POST de teste gravado e conferido na
+tabela (upsert devolvendo o mesmo id); rate limit e validações verificados
+nos testes locais de containers.
+
+**Lições deste deploy (ver `heroguard-docker/README.md`):**
+
+- `POSTGRES_USER`/`POSTGRES_PASSWORD` só valem na **primeira** criação do
+  volume. A API ficou em loop `28P01` até a senha do banco ser alinhada à do
+  stack (`ALTER USER`), e a stack de teste tinha um volume antigo com outro
+  role (recriado com `docker volume rm`).
+- `psql` local dentro do container funciona sem senha (`local all all
+  trust`); conexões TCP exigem as credenciais do env.
+
+**LGPD:** a página `/privacidade` foi reescrita — não afirma mais que “os
+dados não são enviados nem armazenados”; agora descreve o armazenamento no
+Postgres da VPS, o registro de IP/user-agent (retenção de 6 meses) e a
+transferência futura para a Uazapi quando o envio ativar. Versão do aviso:
+`2026-10-28-v2`.
+
 ## Pendências
 
-- Ajustes finos de ritmo ou legibilidade somente se forem solicitados pelo usuário.
+- Fluxo n8n de contato: consultar `waitlist` (`status = 'novo'`), enviar
+  próximos passos pelo WhatsApp e marcar `status = 'contatado'`. Ainda a
+  construir. Host do banco para o n8n: `heroguard-db` (rede `web`).
+- Melhorias sugeridas na API (não críticas): retentativa com backoff em vez
+  de exit após 30 tentativas, com mensagem específica para `28P01`; rota de
+  leitura autenticada (`GET /api/waitlist` + token) para o n8n consumir por
+  HTTP em vez de conexão direta ao banco; log de envios com o `id`
+  (sem dados pessoais); backup periódico do volume `pgdata`.
 - `www.heroguard.my` adicionado à regra do Traefik
   (`Host(\`heroguard.my\`) || Host(\`www.heroguard.my\`)`) — em vigor desde o
   **Update the stack** de 2026-10-23, com certificado reemitido com SAN para
   os dois hosts.
-- Banco de dados: quando o backend entrar, avaliar reaproveitar o Postgres já
-  existente na VPS (criando database `heroguard`) vs. manter o dedicado da
-  stack; decidir também se o `db` da stack precisará de porta no host.
-- Backend da waitlist: tirar a página de `output: 'export'`, runtime Node,
-  `POST /api/waitlist`, tabela `waitlist` (modelo discutido), integração n8n.
+- Rebuild/redeploy pendente: a versão `v0.1.7` deve incluir o aviso de
+  privacidade atualizado (`2026-10-28-v2`), gerado depois do deploy v0.1.6.
 - Commits e pushes: feitos manualmente pelo usuário.

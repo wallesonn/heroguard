@@ -24,11 +24,14 @@ export default function PrivacyPage() {
         </p>
 
         <aside className="privacy-test-notice">
-          <strong>Formulário em modo de teste.</strong> Nesta versão, os dados
-          digitados não são enviados nem armazenados. Este aviso descreve o
-          tratamento planejado para quando a lista de espera for ativada. A
-          análise de conversas também não está implementada: nenhuma conversa
-          real é coletada ou enviada para processamento.
+          <strong>Cadastro em operação.</strong> Os dados informados no
+          formulário (nome, e-mail e telefone) são enviados ao HeroGuard e
+          armazenados em banco de dados próprio, sob controle do responsável
+          citado abaixo, para que possamos entrar em contato pelo WhatsApp.
+          Por segurança, registramos também o endereço IP e o navegador
+          utilizado no momento do envio (retenção descrita na seção 6). A
+          análise de conversas não está implementada: nenhuma conversa real é
+          coletada ou enviada para processamento.
         </aside>
 
         <section>
@@ -57,11 +60,11 @@ export default function PrivacyPage() {
         <section>
           <h2>3. Finalidade e base legal</h2>
           <p>
-            Com o consentimento da pessoa cadastrada, os dados serão usados
+            Com o consentimento da pessoa cadastrada, os dados são usados
             para registrar o interesse na lista de espera e enviar, somente
             pelo WhatsApp, os próximos passos para conhecer o HeroGuard. Não
-            serão usados para publicidade ou mensagens promocionais. O
-            tratamento do cadastro terá como base legal o consentimento, nos
+            são usados para publicidade ou mensagens promocionais. O
+            tratamento do cadastro tem como base legal o consentimento, nos
             termos da LGPD.
           </p>
         </section>
@@ -69,11 +72,13 @@ export default function PrivacyPage() {
         <section>
           <h2>4. Onde e com quem os dados poderão ser compartilhados</h2>
           <p>
-            A aplicação e o n8n serão hospedados na VPS da Hostinger, em
-            servidor no Brasil. O n8n será usado para automatizar o envio dos
-            próximos passos. Para entregar as mensagens, o telefone e os dados
-            necessários ao envio serão encaminhados à Uazapi, fornecedora
-            externa hospedada pela própria Uazapi.
+            Os dados do cadastro são armazenados em banco de dados PostgreSQL
+            hospedado na VPS da Hostinger, em servidor no Brasil, dentro da
+            própria stack do HeroGuard, sem porta de acesso exposta à
+            internet. O n8n, também hospedado nessa VPS, será usado para
+            automatizar o envio dos próximos passos: quando ativo, o
+            telefone e os dados necessários ao envio serão encaminhados à
+            Uazapi, fornecedora externa hospedada pela própria Uazapi.
           </p>
           <p>
             A localização dos sistemas da Uazapi, seus eventuais
@@ -108,10 +113,12 @@ export default function PrivacyPage() {
         <section>
           <h2>6. Retenção e exclusão</h2>
           <p>
-            Os dados da lista de espera serão mantidos até que a pessoa retire
-            o consentimento ou solicite a exclusão, salvo quando a conservação
-            for necessária para cumprir obrigação legal. Registros técnicos de
-            acesso ao servidor, que podem conter endereço IP, serão eliminados
+            Os dados da lista de espera (nome, e-mail e telefone) serão
+            mantidos até que a pessoa retire o consentimento ou solicite a
+            exclusão, salvo quando a conservação for necessária para cumprir
+            obrigação legal. Os registros técnicos associados ao envio do
+            cadastro — endereço IP e identificação do navegador — e os
+            demais registros técnicos de acesso ao servidor serão eliminados
             quando tiverem mais de seis meses.
           </p>
         </section>
@@ -120,9 +127,10 @@ export default function PrivacyPage() {
           <h2>7. Registros técnicos e cookies</h2>
           <p>
             A aplicação não utiliza ferramentas de analytics nem cookies de
-            rastreamento. Para operação e segurança, a infraestrutura do
-            servidor pode gerar registros técnicos de acesso, incluindo
-            endereço IP, com a retenção descrita acima.
+            rastreamento. Para operação e segurança, além dos registros
+            técnicos da infraestrutura, o cadastro registra o endereço IP e a
+            identificação do navegador utilizados no envio do formulário,
+            com a retenção descrita na seção 6.
           </p>
         </section>
 

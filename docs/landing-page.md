@@ -10,6 +10,12 @@ A landing page do HeroGuard será uma experiência institucional, cinematográfi
 
 Nesta primeira versão, a página terá exclusivamente objetivos de apresentação e conversão para uma futura lista de espera. A aplicação ainda não terá funcionalidades de produto implementadas.
 
+> **Atualização (2026-10-28):** o **cadastro da lista de espera está ativo e
+> persistindo dados** — o formulário envia para uma API (`POST /api/waitlist`)
+> que grava na tabela `waitlist` do Postgres da própria stack. As demais
+> funcionalidades de produto (monitoramento, classificação, integrações)
+> permanecem conceituais e todas as demonstrações seguem fictícias.
+
 ### 1.1 Finalidade da plataforma
 
 O HeroGuard é uma plataforma de inteligência e proteção digital criada para ajudar pais e responsáveis a compreender melhor o ambiente digital em que seus filhos estão inseridos.
@@ -90,6 +96,14 @@ Fazer com que o visitante:
 > **QUERO PROTEGER MEUS FILHOS**
 
 O CTA deve aparecer em pontos estratégicos da página, especialmente no hero e na mensagem final.
+
+> **Comportamento do modal (implementado em 2026-10-28):** o modal solicita
+> nome, e-mail e telefone (WhatsApp), com máscara brasileira, e exige aceite
+> explícito do Aviso de Privacidade, registrando a versão aceita. O envio vai
+> para `POST /api/waitlist`; em caso de falha ou erro de validação, o
+> usuário vê a mensagem correspondente e o botão fica desabilitado durante
+> o envio. A confirmação (“Dados recebidos”) só aparece após a gravação
+> real. Detalhes técnicos e do banco: `docs/implementation-progress.md`.
 
 ## 3. Escopo da primeira versão
 
@@ -338,10 +352,12 @@ primeiro plano; a anterior e a próxima ficam menores e translúcidas atrás
 dela. Zoom e transições suaves acompanham a troca.
 
 O visitante pode deslizar horizontalmente, usar as setas, os indicadores ou as
-teclas ←/→. O carrossel pausa quando sai da viewport, pode ser
-pausado/retomado manualmente e respeita `prefers-reduced-motion` (sem
-reprodução automática nesse modo). As telas são responsivas e a sequência
-informa abertura, conexão de contas, conversas, alerta contextual e resumo.
+teclas ←/→. O carrossel pausa quando sai da viewport e respeita
+`prefers-reduced-motion` (sem reprodução automática nesse modo). O controle
+manual de pausar/retomar foi removido (2026-10-23): a reprodução automática
+segue em loop e a navegação manual não a interrompe. As telas são responsivas
+e a sequência informa abertura, conexão de contas, conversas, alerta
+contextual e resumo.
 
 #### Privacidade e proteção de dados (proposta)
 
@@ -354,6 +370,13 @@ informa abertura, conexão de contas, conversas, alerta contextual e resumo.
 > A forma de proteção dos dados — incluindo se e como as mensagens serão criptografadas — será definida junto com a arquitetura da plataforma. Esta demonstração não processa conversas e não implementa criptografia.
 
 Não afirmar que “todas as mensagens” já são ou serão criptografadas, nem que a criptografia “evitará vazamentos”. Escopo, arquitetura, gestão de chaves, dados abrangidos e controles de acesso ainda não estão definidos. Qualquer alegação futura deverá ser validada tecnicamente antes da publicação.
+
+> **Decisão do usuário (2026-10-24):** a copy foi alterada para
+> **“Mensagens protegidas por criptografia.”**, afirmando que as mensagens de
+> texto das conversas são criptografadas para evitar vazamentos não
+> autorizados — decisão do usuário de tratar a criptografia das mensagens
+> como compromisso do produto em operação. A peça visual correspondente é o
+> infográfico animado `components/PrivacidadeMotion.tsx` (ver seção 9).
 
 ### 8.7 Inteligência artificial e classificações
 
@@ -386,6 +409,26 @@ Esses itens devem ser apresentados como visão do produto, sem afirmar que estã
 Incluir uma simulação da experiência do HeroGuard, como uma interface demonstrativa ou sequência interativa de telas. A demonstração pode simular a abertura de uma conversa sinalizada ou não sinalizada e a visualização das mensagens daquele contato.
 
 A simulação deve usar apenas mensagens e dados fictícios, reforçar o conceito do produto e não realizar monitoramento, integração ou processamento real.
+
+> **Implementação (2026-10-28):** a seção “05 — Veja na prática” usa o
+> componente `components/VejaNaPraticaMotion.tsx`, uma conversa animada em
+> janela escura com fundo transparente ao redor. A sequência, controlada por
+> estado no React (não por keyframes CSS sincronizados, para não desalinhar
+> nas repetições), executa em loop enquanto a seção está visível:
+>
+> 1. indicador de digitação com três pontos (lado do contato e lado do
+>    adolescente, com rótulo “Alex digitando”);
+> 2. as três mensagens curtas entram em ordem — “Consegue ir no sábado?”,
+>    “Acho que meus pais não vão deixar...”, “Fala que vai com uma amiga.”;
+> 3. **apenas no final**, entra o banner **AMARELO** (“Sinal de atenção — um
+>    ponto de partida para compreender o contexto”), com glow pulsante;
+> 4. a nota “Uma classificação não é conclusão...” encerra a cena, seguida de
+>    uma pausa de leitura e um fade suave que reinicia o ciclo.
+>
+> O loop só roda quando a seção está na viewport (`IntersectionObserver`) e,
+> com `prefers-reduced-motion`, a conversa completa aparece estática, sem
+> indicadores de digitação. Nomes e mensagens são fictícios; o rodapé do
+> cartão mantém o aviso de demonstração.
 
 ### 8.10 Mensagem final
 
@@ -428,7 +471,7 @@ As animações devem apoiar o storytelling e não prejudicar legibilidade, desem
 ### Motion Graphics — interlúdio editorial e privacidade
 
 - **Caso noticiado:** ~~composição editorial curta, com entrada única e estado final estável~~. **Revisado em 2026-10-23:** a arte com cartões abstratos foi **removida** — os três retângulos não carregavam informação e pareciam vazios. O bloco ficou sem animação, com o rótulo "Uma notícia, com contexto", uma manchete curta em letras grandes e a citação das fontes abaixo, sem links clicáveis.
-- **Privacidade:** peça conceitual pequena com cartões abstratos e movimento discreto. Não usar cadeado, selo “protegido”, texto virando código ou fluxo que simule criptografia em operação. Manter junto à arte o aviso “conceito — recurso não implementado”.
+- **Privacidade:** ~~peça conceitual pequena com cartões abstratos e movimento discreto~~. **Revisado em 2026-10-28:** substituída pelo infográfico animado `components/PrivacidadeMotion.tsx` — fundo 100% transparente, sem textos ou cartões, apenas o desenho: escudo HeroGuard com cadeado no centro, três órbitas concêntricas girando em direções alternadas, pulsos de radar esmeralda/dourado expandindo do centro e três nós periféricos (chave criptográfica, radar de contexto e cofre familiar) ligados ao escudo por feixes com fluxo de luz contínuo. Substituiu o `NotaPrivacidade` original (cartões tracejados one-shot), que deixou de ser usado. As animações param com `prefers-reduced-motion`.
 - Na peça de privacidade, não bloquear rolagem; manter o conteúdo essencial disponível sem animação; respeitar `prefers-reduced-motion`; organizar o conteúdo verticalmente em telas móveis e evitar redução do tamanho do texto.
 
 ## 10. Requisitos de conteúdo e confiança
@@ -464,7 +507,10 @@ A primeira versão será considerada alinhada à especificação quando:
 
 A landing page poderá posteriormente ser conectada a:
 
-- Cadastro real para lista de espera;
+- ~~Cadastro real para lista de espera~~ **Implementado em 2026-10-28:** o
+  formulário grava na tabela `waitlist` do Postgres da stack via API
+  (`api/server.js`, imagem `wallesonnn/heroguard-api`). O contato pelo
+  WhatsApp será feito por fluxo n8n que consulta essa tabela.
 - Autenticação;
 - Dashboard do responsável;
 - Integrações com WhatsApp e Instagram;
