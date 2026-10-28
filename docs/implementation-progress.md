@@ -633,11 +633,58 @@ ativar. O cadastro **não** armazena IP nem user-agent (decisão de
 minimização); a página menciona apenas os registros técnicos da própria
 infraestrutura. Versão do aviso: `2026-10-28-v2`.
 
+## Deploy v0.1.7 — aviso de privacidade v2 e revisão do modelo — 2026-10-28
+
+`./build.sh v0.1.7` publicou `wallesonnn/heroguard-app:v0.1.7` e
+`wallesonnn/heroguard-api:v0.1.7`. Redeploy aplicado em **produção** e
+**stack de teste** (ambos confirmados servindo o novo aviso —
+“Cadastro em operação”, versão `2026-10-28-v2`).
+
+- A API v0.1.7 aplicou na inicialização a migração do modelo revisado:
+  `DROP COLUMN IF EXISTS` de `ip`, `user_agent`, `consent_at` e `source`
+  (decisões do usuário — minimização de dados). Verificação sugerida:
+  `docker exec heroguard-db psql -U heroguard -d heroguard -c '\d waitlist'`.
+- O formulário, a API e a página `/privacidade` estão consistentes entre si:
+  o aviso declara exatamente o que é coletado e armazenado.
+
+### Bug encontrado no deploy: `/privacidade` retornava 403
+
+Ao validar a página do aviso, `https://heroguard.my/privacidade` terminava em
+**403** após dois redirects (nginx 301 para `http://…/privacidade/`, Traefik
+308 de volta para https, e então 403). O bug **existia desde o primeiro
+deploy** (confirmado também na stack de teste com a imagem v0.1.6), não foi
+introduzido pela v0.1.7 — só não tinha sido notado porque o link é pouco
+acessado.
+
+Causa: o export do Next gera `out/privacidade.html`, mas também cria o
+diretório `out/privacidade/` (payloads RSC, **sem** `index.html`). Com
+`try_files $uri $uri/ /index.html`, o nginx enxerga o diretório, emite 301
+para a versão com barra e, sem `index.html` dentro, devolve 403.
+
+Correção (em `heroguard-docker/nginx.conf`, exige build v0.1.8):
+
+```nginx
+location / {
+    try_files $uri $uri.html /index.html;
+}
+```
+
+`$uri.html` serve `privacidade.html` direto, sem redirect; `/` continua
+servido pela diretiva `index`. Enquanto a v0.1.8 não sobe, o aviso segue
+acessível por `https://heroguard.my/privacidade.html` (200) — mas o link do
+modal (`/privacidade`) continua quebrado, por isso o rebuild é pendência
+imediata.
+
 ## Pendências
 
+- **Build/redeploy v0.1.8 (imediata):** incluir a correção do `try_files` no
+  `nginx.conf` e revalidar `https://heroguard.my/privacidade` (200, sem
+  redirect). Também validar na stack de teste.
 - Fluxo n8n de contato: consultar `waitlist` (`status = 'novo'`), enviar
   próximos passos pelo WhatsApp e marcar `status = 'contatado'`. Ainda a
   construir. Host do banco para o n8n: `heroguard-db` (rede `web`).
+- Verificar pós-v0.1.7 (quando conveniente): `\d waitlist` em produção e
+  teste confirmando que `ip`, `user_agent`, `consent_at` e `source` saíram.
 - Melhorias sugeridas na API (não críticas): retentativa com backoff em vez
   de exit após 30 tentativas, com mensagem específica para `28P01`; rota de
   leitura autenticada (`GET /api/waitlist` + token) para o n8n consumir por
@@ -647,6 +694,4 @@ infraestrutura. Versão do aviso: `2026-10-28-v2`.
   (`Host(\`heroguard.my\`) || Host(\`www.heroguard.my\`)`) — em vigor desde o
   **Update the stack** de 2026-10-23, com certificado reemitido com SAN para
   os dois hosts.
-- Rebuild/redeploy pendente: a versão `v0.1.7` deve incluir o aviso de
-  privacidade atualizado (`2026-10-28-v2`), gerado depois do deploy v0.1.6.
 - Commits e pushes: feitos manualmente pelo usuário.
