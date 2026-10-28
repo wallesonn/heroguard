@@ -571,8 +571,16 @@ O formulário da lista de espera passou a persistir de verdade. Fluxo:
   repassar o cabeçalho do Traefik sem anexar).
 - Schema criado pela própria API na inicialização (idempotente, com retry
   de 30 tentativas): tabela `waitlist` (id, name, email único, phone, status
-  default `novo`, source, consent_at, consent_version, ip, user_agent,
-  created_at, updated_at) + índice `(status, created_at DESC)`.
+  default `novo`, consent_version, created_at, updated_at) + índice
+  `(status, created_at DESC)`.
+  **Revisão do modelo (2026-10-28, decisão do usuário):** os campos `ip`,
+  `user_agent`, `consent_at` e `source` foram **removidos** — minimização
+  de dados (LGPD). O endereço IP continua sendo usado **apenas em memória**
+  para o rate limit, nunca persistido; o momento do consentimento fica
+  documentado por `created_at`/`updated_at` (o aceite acontece junto com o
+  envio) e a versão aceita segue em `consent_version`. A inicialização roda
+  `ALTER TABLE waitlist DROP COLUMN IF EXISTS ip/user_agent/consent_at/source`,
+  derrubando as colunas em bancos criados pela v0.1.6 (produção e teste).
 - `api/Dockerfile` — node:22-alpine, sem root, healthcheck em `/api/health`.
   Imagem: `wallesonnn/heroguard-api`.
 
@@ -620,9 +628,10 @@ nos testes locais de containers.
 
 **LGPD:** a página `/privacidade` foi reescrita — não afirma mais que “os
 dados não são enviados nem armazenados”; agora descreve o armazenamento no
-Postgres da VPS, o registro de IP/user-agent (retenção de 6 meses) e a
-transferência futura para a Uazapi quando o envio ativar. Versão do aviso:
-`2026-10-28-v2`.
+Postgres da VPS e a transferência futura para a Uazapi quando o envio
+ativar. O cadastro **não** armazena IP nem user-agent (decisão de
+minimização); a página menciona apenas os registros técnicos da própria
+infraestrutura. Versão do aviso: `2026-10-28-v2`.
 
 ## Pendências
 

@@ -41,29 +41,32 @@ const SCHEMA_SQL = `
     email text NOT NULL,
     phone text NOT NULL,
     status text NOT NULL DEFAULT 'novo',
-    source text NOT NULL DEFAULT 'landing',
-    consent_at timestamptz NOT NULL,
     consent_version text,
-    ip text,
-    user_agent text,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   );
 
   CREATE UNIQUE INDEX IF NOT EXISTS waitlist_email_key ON waitlist (email);
   CREATE INDEX IF NOT EXISTS waitlist_status_created_idx ON waitlist (status, created_at DESC);
+
+  /* Migração (2026-10-28, decisão do usuário): ip, user_agent, consent_at e
+   * source removidos — minimização de dados (LGPD). O IP é usado apenas em
+   * memória para o rate limit; o momento do consentimento fica documentado
+   * por created_at/updated_at e a versão aceita em consent_version.
+   * Idempotente: derruba colunas criadas pela v0.1.6. */
+  ALTER TABLE waitlist DROP COLUMN IF EXISTS ip;
+  ALTER TABLE waitlist DROP COLUMN IF EXISTS user_agent;
+  ALTER TABLE waitlist DROP COLUMN IF EXISTS consent_at;
+  ALTER TABLE waitlist DROP COLUMN IF EXISTS source;
 `;
 
 const INSERT_SQL = `
-  INSERT INTO waitlist (name, email, phone, consent_at, consent_version, source, ip, user_agent)
-  VALUES ($1, $2, $3, now(), $4, 'landing', $5, $6)
+  INSERT INTO waitlist (name, email, phone, consent_version)
+  VALUES ($1, $2, $3, $4)
   ON CONFLICT (email) DO UPDATE SET
     name = EXCLUDED.name,
     phone = EXCLUDED.phone,
-    consent_at = EXCLUDED.consent_at,
     consent_version = EXCLUDED.consent_version,
-    ip = EXCLUDED.ip,
-    user_agent = EXCLUDED.user_agent,
     updated_at = now()
   RETURNING id, status;
 `;
@@ -126,6 +129,8 @@ function readBody(req) {
 }
 
 function clientIp(req) {
+  /* Usado APENAS para o rate limit, em memória — nunca é persistido
+   * (decisão de minimização de dados, 2026-10-28). */
   const forwarded = req.headers["x-forwarded-for"];
 
   if (typeof forwarded === "string" && forwarded.trim().length > 0) {
@@ -207,8 +212,6 @@ async function handleWaitlist(req, res) {
       value.email,
       value.phone,
       value.consentVersion,
-      clientIp(req),
-      String(req.headers["user-agent"] ?? "").slice(0, 300),
     ]);
 
     sendJson(res, 201, { ok: true, id: String(result.rows[0].id) });

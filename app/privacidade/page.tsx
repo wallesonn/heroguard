@@ -28,8 +28,7 @@ export default function PrivacyPage() {
           formulário (nome, e-mail e telefone) são enviados ao HeroGuard e
           armazenados em banco de dados próprio, sob controle do responsável
           citado abaixo, para que possamos entrar em contato pelo WhatsApp.
-          Por segurança, registramos também o endereço IP e o navegador
-          utilizado no momento do envio (retenção descrita na seção 6). A
+          O cadastro não armazena endereço IP nem dados do seu navegador. A
           análise de conversas não está implementada: nenhuma conversa real é
           coletada ou enviada para processamento.
         </aside>
@@ -113,13 +112,11 @@ export default function PrivacyPage() {
         <section>
           <h2>6. Retenção e exclusão</h2>
           <p>
-            Os dados da lista de espera (nome, e-mail e telefone) serão
-            mantidos até que a pessoa retire o consentimento ou solicite a
-            exclusão, salvo quando a conservação for necessária para cumprir
-            obrigação legal. Os registros técnicos associados ao envio do
-            cadastro — endereço IP e identificação do navegador — e os
-            demais registros técnicos de acesso ao servidor serão eliminados
-            quando tiverem mais de seis meses.
+            Os dados da lista de espera serão mantidos até que a pessoa retire
+            o consentimento ou solicite a exclusão, salvo quando a conservação
+            for necessária para cumprir obrigação legal. Registros técnicos de
+            acesso ao servidor, gerados pela infraestrutura e que podem conter
+            endereço IP, serão eliminados quando tiverem mais de seis meses.
           </p>
         </section>
 
@@ -127,10 +124,12 @@ export default function PrivacyPage() {
           <h2>7. Registros técnicos e cookies</h2>
           <p>
             A aplicação não utiliza ferramentas de analytics nem cookies de
-            rastreamento. Para operação e segurança, além dos registros
-            técnicos da infraestrutura, o cadastro registra o endereço IP e a
-            identificação do navegador utilizados no envio do formulário,
-            com a retenção descrita na seção 6.
+            rastreamento. O cadastro não armazena endereço IP nem
+            identificação do navegador; para limitar envios excessivos, o
+            endereço IP é usado apenas de forma temporária, em memória, sem
+            ser gravado. Para operação e segurança, a infraestrutura do
+            servidor pode gerar registros técnicos de acesso, incluindo
+            endereço IP, com a retenção descrita na seção 6.
           </p>
         </section>
 
