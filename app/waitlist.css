@@ -203,6 +203,11 @@ html.is-waitlist-open body {
   filter: brightness(1.05);
 }
 
+.waitlist-submit:disabled {
+  cursor: progress;
+  filter: saturate(0.6) brightness(0.95);
+}
+
 /* Confirmação */
 .waitlist-success {
   text-align: center;

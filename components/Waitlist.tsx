@@ -2,10 +2,9 @@
 
 /*
  * Lista de espera — modal de cadastro acionado pelos CTAs da página
- * (header, hero e mensagem final). Versão de TESTE: nenhum dado é enviado
- * ou armazenado; "Enviar" apenas apresenta a confirmação do fluxo.
- * Integrações reais (armazenamento e mensagem de WhatsApp) serão feitas
- * em versão futura, fora do escopo estático atual.
+ * (header, hero e mensagem final). Os dados são enviados para a API
+ * (POST /api/waitlist), que grava na tabela "waitlist" do Postgres da
+ * stack. O contato pelo WhatsApp é feito depois, a partir dessa tabela.
  */
 
 import {
@@ -47,6 +46,11 @@ export function WaitlistButton({
 
 const PHONE_MIN_DIGITS = 10;
 
+/* Em produção o nginx faz proxy de /api/ para o serviço "api" da stack.
+   Em desenvolvimento (next dev) não existe esse proxy: defina
+   NEXT_PUBLIC_WAITLIST_ENDPOINT em .env.local para apontar a API local. */
+const WAITLIST_ENDPOINT = process.env.NEXT_PUBLIC_WAITLIST_ENDPOINT || "/api/waitlist";
+
 /* Máscara brasileira: (11) 91234-5678 ou (11) 3456-7890. */
 function maskPhone(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -67,6 +71,7 @@ export function WaitlistProvider({ children }: Readonly<{ children: ReactNode }>
   const [phone, setPhone] = useState("");
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const triggerRef = useRef<HTMLElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -143,8 +148,9 @@ export function WaitlistProvider({ children }: Readonly<{ children: ReactNode }>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitting) return;
     if (name.trim().length < 2) {
       setError("Informe seu nome para continuar.");
       nameRef.current?.focus({ preventScroll: true });
@@ -165,9 +171,41 @@ export function WaitlistProvider({ children }: Readonly<{ children: ReactNode }>
       consentRef.current?.focus({ preventScroll: true });
       return;
     }
+
     setError("");
-    setSent(true);
-    /* Teste: nada é enviado — a confirmação apenas simula o fluxo futuro. */
+    setSubmitting(true);
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const response = await fetch(WAITLIST_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          phone,
+          consent,
+          consentVersion: PRIVACY_NOTICE_VERSION,
+        }),
+        signal: controller.signal,
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) {
+        setError(payload?.error ?? "Não foi possível enviar seus dados agora. Tente novamente.");
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setError("Não conseguimos enviar seus dados. Verifique sua conexão e tente novamente.");
+    } finally {
+      window.clearTimeout(timeout);
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -305,7 +343,9 @@ export function WaitlistProvider({ children }: Readonly<{ children: ReactNode }>
                   </p>
                 )}
 
-                <button className="waitlist-submit" type="submit">Continuar pelo WhatsApp</button>
+                <button className="waitlist-submit" type="submit" disabled={submitting}>
+                  {submitting ? "Enviando..." : "Continuar pelo WhatsApp"}
+                </button>
               </form>
             )}
           </div>
